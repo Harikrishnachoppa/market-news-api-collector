@@ -1,57 +1,106 @@
+# Market News API Collector
+
+A Python automation pipeline that fetches financial news from an external API, cleans real-world messy data, stores structured records in SQLite, and generates daily CSV reports.
+
+---
+
 ## Problem
-In many companies, analysts manually collect daily market or financial news
-and prepare reports. This process is repetitive, slow, and error-prone.
+Teams often manually collect daily financial news and prepare reports.
+This process is repetitive, slow, and error-prone.
 
 ## Solution
-This project automates the entire workflow:
+This project automates the workflow:
 
-Fetch news from API → clean messy real-world data → store structured records → generate daily report
+Fetch news from API → clean unreliable data → store structured records → generate daily report
 
-## What this project demonstrates
+---
+
+## Why I Built This
+To simulate a real internal company tool where recurring data collection is automated.
+The focus was reliability — even if the API returns missing or inconsistent data, the pipeline continues without failure.
+
+---
+
+## What This Demonstrates
 - External API integration using Python
 - Handling incomplete / unreliable JSON data
 - Automated data ingestion pipeline
 - Database storage with duplicate prevention
-- Reliable execution with logging and retry handling
- 
+- Reliable execution using logging and retry handling
 
-## Project Structure
+---
+
+
+## Architecture
+
+```
+NewsAPI.org
+    ↓
+[API Integration] (fetch_news.py)
+    ↓ JSON articles
+[Data Cleaning] (cleaner.py)
+    ↓ cleaned articles
+[SQLite Storage] (db.py)
+    ↓ persist to database
+[Report Generation] (generate_report.py)
+    ↓ CSV file
+[Logging] (logger.py)
+    ↓ execution records
+```
+
+## Tech Stack
+
+- **Language:** Python 3.7+
+- **API Client:** requests (HTTP library)
+- **Database:** SQLite3
+- **Configuration:** python-dotenv (environment variables)
+- **Logging:** Python logging module
+- **CSV:** Python csv module (built-in)
+
+## Folder Structure
 
 ```
 market_news_collector/
 │
-├── config.py                 # Application configuration and constants
-├── logger.py                 # Logging setup with rotation
-├── main.py                   # Main orchestration script
+├── main.py                    # Entry point - orchestrates workflow
+├── config.py                  # Configuration & constants
+├── logger.py                  # Logging setup with rotation
 │
 ├── api/
-│   └── fetch_news.py         # NewsAPI integration with retry logic
+│   └── fetch_news.py          # NewsAPI integration with retry logic
 │
 ├── processing/
-│   └── cleaner.py            # Data cleaning and validation
+│   └── cleaner.py             # Data cleaning & validation module
 │
 ├── database/
-│   ├── models.py             # Data models
-│   └── db.py                 # SQLite operations
+│   ├── db.py                  # SQLite operations
+│   └── models.py              # Article data model
 │
 ├── reports/
-│   └── generate_report.py    # CSV report generation
+│   └── generate_report.py     # CSV report generation
 │
-└── data/
-    ├── news.db               # SQLite database (auto-created)
-    ├── reports/              # Generated CSV reports
-    └── ../logs/collector.log # Application logs
+├── data/
+│   ├── news.db                # SQLite database (auto-created)
+│   └── reports/               # Generated CSV files
+│
+├── logs/
+│   └── collector.log          # Application logs (rotating)
+│
+├── requirements.txt           # Python dependencies
+├── .env.example               # Environment template
+└── README.md                  # This file
 ```
 
-## Installation
+## Setup Instructions
 
-### 1. Clone or Download the Project
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/yourusername/market-news-collector.git
 cd market_news_collector
 ```
 
-### 2. Create Virtual Environment (Recommended)
+### 2. Create Virtual Environment
 
 **Windows:**
 ```bash
@@ -71,9 +120,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
+### 4. Get API Key
 
-Copy `.env.example` to `.env` and add your NewsAPI key:
+1. Visit [NewsAPI.org](https://newsapi.org)
+2. Sign up for a free account
+3. Copy your API key
+
+### 5. Configure Environment
 
 ```bash
 cp .env.example .env
@@ -81,18 +134,12 @@ cp .env.example .env
 
 Edit `.env` and add your API key:
 ```
-NEWS_API_KEY=your_api_key_from_newsapi_org
+NEWS_API_KEY=your_api_key_here
 SEARCH_QUERY=market OR finance OR business
 LOG_LEVEL=INFO
 ```
 
-**Get a Free API Key:**
-1. Visit https://newsapi.org
-2. Sign up for a free account
-3. Copy your API key
-4. Paste it in `.env`
-
-## Usage
+## Running the Project
 
 ### Normal Execution
 
@@ -100,20 +147,15 @@ LOG_LEVEL=INFO
 python main.py
 ```
 
-This will:
-1. Fetch articles from NewsAPI
-2. Clean and validate the data
-3. Store in SQLite database (skipping duplicates)
-4. Generate a CSV report
-5. Display execution summary
+Fetches articles, cleans data, stores in database, generates report.
 
-### Dry Run (Test Mode)
+### Test Mode (Dry Run)
 
 ```bash
 python main.py --dry-run
 ```
 
-Test the entire pipeline without saving to database or generating reports.
+Tests entire pipeline without saving to database or file. Perfect for debugging.
 
 ### Help
 
@@ -121,247 +163,46 @@ Test the entire pipeline without saving to database or generating reports.
 python main.py --help
 ```
 
-## Scheduled Execution
 
-### Linux/macOS Cron
+## Example Output
 
-Add to your crontab with `crontab -e`:
-
-```bash
-# Run every hour
-0 * * * * cd /path/to/market_news_collector && python main.py
-
-# Run every 6 hours
-0 */6 * * * cd /path/to/market_news_collector && python main.py
-
-# Run daily at 9 AM
-0 9 * * * cd /path/to/market_news_collector && python main.py
-
-# Run every Monday at 8 AM
-0 8 * * 1 cd /path/to/market_news_collector && python main.py
-```
-
-### Windows Task Scheduler
-
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger (daily, hourly, etc.)
-4. Set action:
-   - Program: `C:\path\to\venv\Scripts\python.exe`
-   - Arguments: `C:\path\to\market_news_collector\main.py`
-   - Start in: `C:\path\to\market_news_collector`
-
-## Configuration
-
-Edit `config.py` to customize:
-
-```python
-# API Settings
-SEARCH_QUERY = "market OR finance OR business"  # Search terms
-PAGE_SIZE = 100                                  # Articles per request
-LANGUAGE = "en"                                  # Language filter
-
-# Request Settings
-REQUEST_TIMEOUT = 15                            # Seconds
-MAX_RETRIES = 3                                 # Retry attempts
-RETRY_DELAY = 2                                 # Seconds between retries
-
-# Data Cleaning
-MAX_TITLE_LENGTH = 500                          # Max title chars
-MAX_DESCRIPTION_LENGTH = 5000                   # Max description chars
-DEFAULT_AUTHOR = "Unknown"                      # Default when author missing
-
-# Data Retention
-DATA_RETENTION_DAYS = 90                        # Delete articles older than this
-
-# Logging
-LOG_LEVEL = "INFO"                              # DEBUG, INFO, WARNING, ERROR
-LOG_MAX_BYTES = 10 * 1024 * 1024               # 10 MB per log file
-LOG_BACKUP_COUNT = 5                            # Keep 5 backups
-```
-
-## Data Fields
-
-Each article stored in the database includes:
-
-| Field | Type | Notes |
-|-------|------|-------|
-| id | INTEGER | Auto-generated primary key |
-| title | TEXT | Article title (cleaned) |
-| source | TEXT | News source name |
-| author | TEXT | Article author |
-| published_date | TIMESTAMP | Publication date (ISO format) |
-| description | TEXT | Article summary/description |
-| url | TEXT | Article URL (unique) |
-| fetched_at | TIMESTAMP | When article was fetched |
-
-## Data Cleaning
-
-The `ArticleCleaner` module automatically:
-
-✓ Removes emojis and special characters  
-✓ Normalizes whitespace and line breaks  
-✓ Removes HTML entities  
-✓ Validates required fields  
-✓ Handles null/empty values  
-✓ Replaces missing authors with "Unknown"  
-✓ Standardizes datetime format to ISO 8601  
-✓ Enforces maximum field lengths  
-
-## Database
-
-Uses SQLite for persistence:
-
-- **File**: `data/news.db`
-- **Auto-indexed**: URL, source, published_date for fast queries
-- **Unique constraint**: URL prevents duplicate articles
-- **Auto-created**: Schema created on first run
-
-### Query Examples
-
-```python
-from database.db import NewsDatabase
-
-db = NewsDatabase()
-
-# Get all articles
-articles = db.get_all_articles()
-
-# Get articles from specific source
-reuters = db.get_articles_by_source("Reuters")
-
-# Check if article exists
-exists = db.article_exists(url)
-
-# Total article count
-count = db.get_article_count()
-
-# Delete articles older than 90 days
-deleted = db.delete_old_articles(days=90)
-
-db.close()
-```
-
-## Logging
-
-Logs are stored in `logs/collector.log` with rotating file handler:
-
-- **Max Size**: 10 MB per file
-- **Backup Count**: 5 previous files
-- **Format**: ISO timestamp, logger name, level, message
-- **Output**: Both file and console
-
-View logs:
-```bash
-tail -f logs/collector.log  # macOS/Linux
-Get-Content logs\collector.log -Tail 20  # Windows PowerShell
-```
-
-## Reports
-
-CSV reports are generated in `data/reports/`:
-
-- **Filename Format**: `news_YYYY_MM_DD.csv`
-- **Contents**: All article fields
-- **Character Encoding**: UTF-8
-- **One per day**: New report generated each execution
-
-Example report: `news_2024_12_15.csv`
-
-## Error Handling
-
-The system handles:
-
-- **API Errors**: Automatic retry with exponential backoff
-- **Network Issues**: Timeout detection and retry logic
-- **Rate Limiting**: 429 status code with smart backoff
-- **Invalid Data**: Malformed articles skipped with warning
-- **Database Errors**: Logging with rollback on failure
-- **Duplicates**: Silently skipped (not counted as errors)
-
-## Performance
-
-- **Fetching**: ~2-5 seconds per API request (depends on network)
-- **Cleaning**: ~100 articles per second
-- **Database**: ~50 articles per second (bulk insert)
-- **Total**: 100 articles processed in ~3-5 seconds
-
-## Troubleshooting
-
-### API Key Issues
+### Console Output
 
 ```
-Error: Unauthorized: Invalid API key
+============================================================
+Market News Collector - Starting Execution
+============================================================
+Step 1: Fetching articles from NewsAPI...
+Fetched 45 articles
+Step 2: Cleaning and validating articles...
+Cleaned 42 articles
+Step 3: Storing articles in database...
+Inserted 38 articles, skipped 4 duplicates
+Step 4: Cleaning up old articles...
+Step 5: Generating report...
+Report generated: data/reports/news_2024_12_15.csv
+
+============================================================
+EXECUTION SUMMARY
+============================================================
+Status: completed
+Articles Fetched: 45
+Articles Cleaned: 42
+Articles Inserted: 38
+Articles Skipped (Duplicates): 4
+Report File: data/reports/news_2024_12_15.csv
+============================================================
 ```
 
-- Check `.env` file for correct API key
-- Ensure NewsAPI.org key is not expired
-- Verify key in `.env` matches your account
+### Database Output (news.db)
 
-### Database Lock
+SQLite database with automatic schema. Articles deduplicated by unique URL constraint.
 
-```
-sqlite3.OperationalError: database is locked
-```
+### Report Output (news_2024_12_15.csv)
 
-- Ensure only one instance running
-- Close any other database connections
-- Check that no other process has `news.db` open
-
-### Timeout Errors
-
-```
-requests.exceptions.ConnectTimeout
+```csv
+id,title,source,author,published_date,description,url,fetched_at
+1,Apple Stock Rises,Reuters,John Doe,2024-12-15T10:30:00,Apple shares surge...,https://...,2024-12-15T09:45:00
+2,Market Analysis,Bloomberg,Jane Smith,2024-12-15T09:15:00,Markets show signs...,https://...,2024-12-15T09:45:00
 ```
 
-- Check internet connection
-- Increase `REQUEST_TIMEOUT` in config.py
-- Check NewsAPI.org status
-
-### Empty Reports
-
-- Verify API key is valid and has request quota
-- Check that `SEARCH_QUERY` returns results
-- View logs for detailed error messages
-
-## Code Quality
-
-- **Type Hints**: Used throughout for clarity
-- **Docstrings**: All functions and classes documented
-- **Error Handling**: Comprehensive try/except blocks
-- **Logging**: Detailed logging at all levels
-- **Testing**: Dry-run mode for validation
-- **PEP 8**: Follows Python style guidelines
-
-## Dependencies
-
-- **requests**: HTTP library for API calls
-- **python-dotenv**: Environment variable management
-- **sqlite3**: Built-in database (no extra package needed)
-
-## License
-
-Free to use and modify for your needs.
-
-## Contributing
-
-Feel free to enhance the project:
-
-- Add more data sources (RSS feeds, other APIs)
-- Implement data enrichment (sentiment analysis, topic extraction)
-- Add email notifications
-- Create web dashboard
-- Add more export formats (JSON, Parquet)
-
-## Support
-
-For issues or questions:
-
-1. Check logs in `logs/collector.log`
-2. Run in dry-run mode: `python main.py --dry-run`
-3. Verify `.env` configuration
-4. Ensure all dependencies are installed
-
----
-
-**Built with professional Python engineering practices** ⚙️
