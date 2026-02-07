@@ -1,29 +1,19 @@
-# Market News API Collector
+## Problem
+In many companies, analysts manually collect daily market or financial news
+and prepare reports. This process is repetitive, slow, and error-prone.
 
-A production-style Python automation tool that periodically collects market and financial news, processes it, stores it in a database, and generates structured reports.
+## Solution
+This project automates the entire workflow:
 
-## Overview
+Fetch news from API → clean messy real-world data → store structured records → generate daily report
 
-This project demonstrates professional software engineering practices in Python:
-
-- **Modular Architecture**: Clean separation of concerns with dedicated modules for API fetching, data cleaning, database operations, and reporting
-- **Robust Error Handling**: Retry logic, timeout handling, and comprehensive error logging
-- **Data Quality**: Automatic cleaning, validation, and deduplication of articles
-- **Production Ready**: Rotating logs, SQLite persistence, scheduled execution support
-- **Type Hints & Documentation**: Clear code with docstrings and type annotations
-
-## Features
-
-✓ Fetches financial/business news from NewsAPI.org  
-✓ Parses and validates JSON responses  
-✓ Cleans and normalizes article data (emojis, whitespace, nulls, casing)  
-✓ Stores records in SQLite database with duplicate prevention  
-✓ Generates timestamped CSV reports  
-✓ Comprehensive logging with rotating file handler  
-✓ Retry logic with exponential backoff  
-✓ Timeout and status code validation  
-✓ Cron-compatible execution  
-✓ Dry-run mode for testing  
+## What this project demonstrates
+- External API integration using Python
+- Handling incomplete / unreliable JSON data
+- Automated data ingestion pipeline
+- Database storage with duplicate prevention
+- Reliable execution with logging and retry handling
+ 
 
 ## Project Structure
 
